@@ -46,6 +46,10 @@ namespace LiminalSpace
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void AutoInitializeOnPlay()
         {
+            // Standalone scenes (such as the 360 panorama viewer) own their own camera and
+            // must not have a liminal world built around them.
+            if (FindFirstObjectByType<PanoramaViewer>() != null) return;
+
             if (FindFirstObjectByType<LiminalGameManager>() == null)
             {
                 GameObject mgrObj = new GameObject("LiminalExperienceManager");
