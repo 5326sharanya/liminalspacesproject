@@ -41,3 +41,8 @@ crashlytics-build.properties
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Android & Visual Studio temp
+.utmp/
+.vsconfig
+*.log
