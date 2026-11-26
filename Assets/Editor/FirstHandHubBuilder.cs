@@ -24,18 +24,14 @@ namespace FirstHandLab.Editor
             BuildHubScene();
         }
 
-        [InitializeOnLoadMethod]
-        private static void OnEditorLoad()
-        {
-            EditorApplication.delayCall += () =>
-            {
-                Debug.Log("[FirstHandHubBuilder] Auto-building First Hand Hub Scene...");
-                BuildHubScene();
-            };
-        }
-
         public static void BuildHubScene()
         {
+            if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isPlaying)
+            {
+                Debug.LogWarning("[FirstHandHubBuilder] Cannot build or reset scene while in Play Mode. Please exit Play Mode first.");
+                return;
+            }
+
             Debug.Log("[FirstHandHubBuilder] Starting generation of realistic First Hand Hub scene...");
 
             // Ensure folder exists
@@ -623,6 +619,7 @@ namespace FirstHandLab.Editor
             if (litShader == null) litShader = Shader.Find("Standard");
             Material mat = new Material(litShader);
             mat.color = col;
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", col);
             if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", metallic);
             if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 1f - roughness);
             rend.sharedMaterial = mat;
@@ -635,8 +632,10 @@ namespace FirstHandLab.Editor
             Material mat = new Material(litShader);
             mat.name = name;
             mat.color = Color.white;
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", Color.white);
             mat.EnableKeyword("_EMISSION");
             mat.SetColor("_EmissionColor", emission);
+            mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
             return mat;
         }
 
@@ -647,7 +646,11 @@ namespace FirstHandLab.Editor
             Material mat = new Material(litShader);
             mat.name = name;
             mat.color = tint;
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", tint);
             mat.SetFloat("_Surface", 1); // Transparent in URP
+            mat.SetFloat("_Blend", 0);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.SetOverrideTag("RenderType", "Transparent");
             mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
             mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             mat.SetInt("_ZWrite", 0);
